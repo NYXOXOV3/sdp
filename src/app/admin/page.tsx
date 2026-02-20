@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Users, Eye, Film, Activity, RefreshCw } from 'lucide-react';
+import { Loader2, Users, Eye, Film, Activity, RefreshCw, Crown, CreditCard } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Statistics {
@@ -265,6 +265,32 @@ export default function AdminDashboard() {
             <h3 className="text-base md:text-lg font-bold mb-2">Maintenance Mode</h3>
             <p className="text-sm text-muted-foreground">
               Enable or disable site maintenance
+            </p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/vip')}
+            className="card-corporate p-4 md:p-6 hover:border-primary/50 transition-colors text-left"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base md:text-lg font-bold">VIP Plans</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Kelola paket VIP dan metode pembayaran
+            </p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/payments')}
+            className="card-corporate p-4 md:p-6 hover:border-primary/50 transition-colors text-left"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <CreditCard className="w-5 h-5 text-primary" />
+              <h3 className="text-base md:text-lg font-bold">Pembayaran</h3>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Approve atau reject pembayaran VIP
             </p>
           </button>
 

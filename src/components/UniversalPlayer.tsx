@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowLeft, ChevronUp, ChevronDown, Settings, List, 
-  Play, Pause, Volume2, VolumeX, X, Loader2, Gauge
+  Play, Pause, Volume2, VolumeX, X, Loader2, Gauge, Lock, Crown
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import Hls from "hls.js";
+import { useVipStatus } from "@/hooks/useVipStatus";
 
 export interface VideoQuality {
   id: string;
@@ -52,6 +53,7 @@ export default function UniversalPlayer({
   detailPath,
 }: UniversalPlayerProps) {
   const router = useRouter();
+  const { isVip, maxQuality } = useVipStatus();
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -416,27 +418,41 @@ export default function UniversalPlayer({
                       >
                         Auto
                       </button>
-                      {qualityOptions.map((q) => (
-                        <button
-                          key={q.id}
-                          onClick={() => { 
-                            setSelectedQualityId(q.id); 
-                            setShowQualityMenu(false); 
-                          }}
-                          className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${
-                            selectedQualityId === q.id ? 'text-violet-400 bg-white/5' : 'text-white'
-                          } hover:bg-white/10 transition-colors`}
-                        >
-                          <span className="flex items-center gap-2">
-                            {q.label}
-                            {q.isHD && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold">
-                                HD
-                              </span>
-                            )}
-                          </span>
-                        </button>
-                      ))}
+                      {qualityOptions.map((q) => {
+                        const isLocked = q.isHD && !isVip;
+                        return (
+                          <button
+                            key={q.id}
+                            onClick={() => {
+                              if (isLocked) {
+                                setShowQualityMenu(false);
+                                router.push('/upgrade');
+                                return;
+                              }
+                              setSelectedQualityId(q.id); 
+                              setShowQualityMenu(false); 
+                            }}
+                            className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${
+                              isLocked ? 'text-white/40' :
+                              selectedQualityId === q.id ? 'text-violet-400 bg-white/5' : 'text-white'
+                            } hover:bg-white/10 transition-colors`}
+                          >
+                            <span className="flex items-center gap-2">
+                              {q.label}
+                              {q.isHD && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold">
+                                  HD
+                                </span>
+                              )}
+                            </span>
+                            {isLocked ? (
+                              <Lock className="w-3.5 h-3.5 text-amber-400" />
+                            ) : isVip && q.isHD ? (
+                              <Crown className="w-3.5 h-3.5 text-amber-400" />
+                            ) : null}
+                          </button>
+                        );
+                      })}
                     </div>
                   </>
                 )}

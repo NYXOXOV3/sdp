@@ -115,6 +115,21 @@ npm run deploy:cloudflare
 - Configuration in `wrangler.toml` and `open-next.config.ts`
 
 ## Recent Changes
+- 2026-02-20: VIP/Premium Subscription System
+  - Added VIP plan system with HD resolution gating
+  - Free users locked to SD quality, VIP users get HD (720p+)
+  - Lock icon on HD quality options in video player, clicking redirects to /upgrade
+  - Upgrade page with 3-step flow: plan selection, payment, confirmation
+  - Payment methods: QRIS, GoPay, DANA, Bank Transfer (admin configurable)
+  - Manual payment approval by admin
+  - Payment history for users
+  - Admin VIP management (/admin/vip): plan CRUD, payment method CRUD, subscriber list
+  - Admin payments page (/admin/payments): approve/reject payments with notes
+  - VIP badge on profile page, upgrade prompt for non-VIP users
+  - Uses separate Supabase database via pg for VIP tables
+  - Database tables: vip_plans, vip_subscriptions, payment_methods, payment_requests
+  - API routes: /api/vip/status, /api/vip/plans, /api/vip/payment-methods, /api/vip/subscribe, /api/vip/my-payments
+  - Admin API routes: /api/admin/vip/plans, /api/admin/vip/methods, /api/admin/vip/payments, /api/admin/vip/subscribers
 - 2026-02-06: Performance Optimizations
   - Conditional data fetching: DramaBox API calls only fire when DramaBox platform is active
   - Dynamic imports (React.lazy) for platform-specific sections (ReelShort, NetShort, Melolo, FlickReels, FreeReels)

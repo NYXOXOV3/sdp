@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { Loader2, User, Mail, Calendar, History, Bookmark, Settings, LogOut, Trash2, Play } from 'lucide-react';
+import { Loader2, User, Mail, Calendar, History, Bookmark, Settings, LogOut, Trash2, Play, Crown, Shield } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useVipStatus } from '@/hooks/useVipStatus';
 
 interface WatchHistoryItem {
   id: string;
@@ -30,8 +31,9 @@ interface BookmarkItem {
 }
 
 export default function ProfilePage() {
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { user, signOut, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
+  const { isVip, vipPlan, subscription, pendingPayment } = useVipStatus();
   const [activeTab, setActiveTab] = useState<'history' | 'bookmarks'>('history');
   const [watchHistory, setWatchHistory] = useState<WatchHistoryItem[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -175,7 +177,19 @@ export default function ProfilePage() {
               <User className="w-10 h-10 md:w-12 md:h-12 text-primary" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl md:text-3xl font-bold mb-2">Profile</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold">Profile</h1>
+                {isVip && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold">
+                    <Crown className="w-3 h-3" /> VIP
+                  </span>
+                )}
+                {isAdmin && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-bold">
+                    <Shield className="w-3 h-3" /> Admin
+                  </span>
+                )}
+              </div>
               <div className="flex flex-col gap-2 text-sm md:text-base text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4" />
@@ -196,6 +210,52 @@ export default function ProfilePage() {
             </button>
           </div>
         </div>
+
+        {isVip && subscription ? (
+          <div className="card-corporate p-5 mb-6 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-orange-500/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="w-6 h-6 text-amber-400" />
+                <div>
+                  <h3 className="font-bold text-amber-400">{vipPlan?.name || 'VIP'}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Aktif sampai {new Date(subscription.ends_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+              </div>
+              <Link href="/upgrade" className="text-xs text-primary hover:underline">Perpanjang</Link>
+            </div>
+          </div>
+        ) : (
+          <Link href="/upgrade" className="block card-corporate p-5 mb-6 hover:border-primary/30 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="w-6 h-6 text-muted-foreground" />
+                <div>
+                  <h3 className="font-bold">Upgrade ke VIP</h3>
+                  <p className="text-xs text-muted-foreground">Nikmati resolusi HD tanpa batasan</p>
+                </div>
+              </div>
+              {pendingPayment ? (
+                <span className="text-xs px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 font-medium">Menunggu</span>
+              ) : (
+                <span className="text-xs text-primary font-medium">Upgrade</span>
+              )}
+            </div>
+          </Link>
+        )}
+
+        {isAdmin && (
+          <Link href="/admin" className="block card-corporate p-5 mb-6 hover:border-primary/30 transition-colors">
+            <div className="flex items-center gap-3">
+              <Shield className="w-6 h-6 text-violet-400" />
+              <div>
+                <h3 className="font-bold">Admin Panel</h3>
+                <p className="text-xs text-muted-foreground">Kelola aplikasi</p>
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto">
