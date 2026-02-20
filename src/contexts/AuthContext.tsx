@@ -53,44 +53,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserRole = async (userId: string) => {
     console.log('[AuthContext] Fetching role for user:', userId);
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('[AuthContext] Error fetching user role:', error);
-
-        if (error.message?.includes('does not exist') || error.message?.includes('querying schema') || error.code === '42P01') {
-          console.warn('[AuthContext] Users table may not exist yet. Defaulting to user role.');
-          setUserRole('user');
-          setLoading(false);
-          return;
-        }
-
-        if (error.code === 'PGRST116' || error.message?.includes('no rows')) {
-          console.log('[AuthContext] User not found in users table, creating...');
-          try {
-            const { error: insertError } = await supabase
-              .from('users')
-              .insert([{ id: userId, role: 'user' }]);
-
-            if (insertError) {
-              console.warn('[AuthContext] Could not create user record:', insertError.message);
-            } else {
-              console.log('[AuthContext] User created successfully');
-            }
-          } catch (insertErr) {
-            console.warn('[AuthContext] Insert failed, table may not exist:', insertErr);
-          }
-        }
-
-        setUserRole('user');
-      } else {
-        console.log('[AuthContext] Role fetched successfully:', data?.role);
-        setUserRole(data?.role || 'user');
-      }
+      const res = await fetch(`/api/user/role?userId=${userId}`);
+      const data = await res.json();
+      const role = data?.role || 'user';
+      console.log('[AuthContext] Role fetched successfully:', role);
+      setUserRole(role);
     } catch (error) {
       console.error('[AuthContext] Exception fetching user role:', error);
       setUserRole('user');
