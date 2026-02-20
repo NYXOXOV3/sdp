@@ -130,6 +130,8 @@ npm run deploy:cloudflare
   - Database tables: vip_plans, vip_subscriptions, payment_methods, payment_requests
   - API routes: /api/vip/status, /api/vip/plans, /api/vip/payment-methods, /api/vip/subscribe, /api/vip/my-payments
   - Admin API routes: /api/admin/vip/plans, /api/admin/vip/methods, /api/admin/vip/payments, /api/admin/vip/subscribers
+  - Security: Admin API routes verify adminId against users table (role=admin) before allowing operations
+  - Auth helper: src/lib/auth-check.ts provides isAdminById() for server-side admin verification
 - 2026-02-06: Performance Optimizations
   - Conditional data fetching: DramaBox API calls only fire when DramaBox platform is active
   - Dynamic imports (React.lazy) for platform-specific sections (ReelShort, NetShort, Melolo, FlickReels, FreeReels)
