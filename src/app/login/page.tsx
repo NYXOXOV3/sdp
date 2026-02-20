@@ -22,11 +22,7 @@ export default function LoginPage() {
       await signIn(email, password);
       router.push('/');
     } catch (err: any) {
-      let msg = err.message || 'Gagal masuk';
-      if (msg.includes('Database error') || msg.includes('querying schema')) {
-        msg = 'Login gagal karena masalah konfigurasi database. Pastikan tabel database sudah dibuat di Supabase.';
-      }
-      setError(msg);
+      setError(err.message || 'Gagal masuk');
     } finally {
       setLoading(false);
     }

@@ -105,11 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password,
     });
     if (error) {
-      if (error.message.includes('Database error') || error.message.includes('querying schema')) {
-        throw new Error('Login gagal karena masalah konfigurasi database. Pastikan tabel database sudah dibuat di Supabase.');
-      }
+      console.error('[AuthContext] SignIn error:', error.message, error.status, JSON.stringify(error));
       if (error.message.includes('Invalid login credentials')) {
         throw new Error('Email atau password salah. Silakan coba lagi.');
+      }
+      if (error.message.includes('Email not confirmed')) {
+        throw new Error('Email belum dikonfirmasi. Cek inbox email kamu untuk link verifikasi.');
       }
       throw error;
     }
