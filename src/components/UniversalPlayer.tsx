@@ -92,14 +92,39 @@ export default function UniversalPlayer({
       .sort((a, b) => b.quality - a.quality);
   }, [currentEpisode]);
 
+  const sdQualities = useMemo(() => {
+    return qualityOptions.filter(q => !q.isHD);
+  }, [qualityOptions]);
+
+  const [showVipGate, setShowVipGate] = useState(false);
+
   const getCurrentVideo = useCallback((): { url: string; isHls: boolean } | null => {
     if (!currentEpisode?.videoQualities?.length) return null;
 
     let selectedQ = null;
-    if (selectedQualityId === "auto" || !qualityOptions.length) {
-      selectedQ = qualityOptions.find(q => q.isDefault) || qualityOptions[0];
+    
+    if (!isVip) {
+      if (sdQualities.length > 0) {
+        if (selectedQualityId === "auto" || !qualityOptions.length) {
+          selectedQ = sdQualities.find(q => q.isDefault) || sdQualities[0];
+        } else {
+          const found = qualityOptions.find(q => q.id === selectedQualityId);
+          if (found && found.isHD) {
+            selectedQ = sdQualities[0];
+          } else {
+            selectedQ = found || sdQualities[0];
+          }
+        }
+      } else {
+        const lowestQuality = qualityOptions[qualityOptions.length - 1];
+        selectedQ = lowestQuality;
+      }
     } else {
-      selectedQ = qualityOptions.find(q => q.id === selectedQualityId) || qualityOptions[0];
+      if (selectedQualityId === "auto" || !qualityOptions.length) {
+        selectedQ = qualityOptions.find(q => q.isDefault) || qualityOptions[0];
+      } else {
+        selectedQ = qualityOptions.find(q => q.id === selectedQualityId) || qualityOptions[0];
+      }
     }
     
     if (!selectedQ) return null;
@@ -110,7 +135,7 @@ export default function UniversalPlayer({
       (selectedQ.url.includes('url=') && decodeURIComponent(selectedQ.url).includes('.m3u8'));
     
     return { url: selectedQ.url, isHls };
-  }, [currentEpisode, selectedQualityId, qualityOptions]);
+  }, [currentEpisode, selectedQualityId, qualityOptions, isVip, sdQualities]);
 
   const loadVideo = useCallback((videoUrl: string, isHls: boolean) => {
     if (!videoRef.current) return;
@@ -416,8 +441,14 @@ export default function UniversalPlayer({
                         onClick={() => { setSelectedQualityId("auto"); setShowQualityMenu(false); }}
                         className={`w-full px-4 py-3 text-left text-sm ${selectedQualityId === "auto" ? 'text-violet-400 bg-white/5' : 'text-white'} hover:bg-white/10 transition-colors`}
                       >
-                        Auto
+                          Auto {!isVip ? '(SD)' : ''}
                       </button>
+                      {!isVip && (
+                        <div className="px-4 py-2 border-b border-white/10 flex items-center gap-2">
+                          <Lock className="w-3 h-3 text-amber-400" />
+                          <span className="text-[10px] text-amber-400/80">Upgrade VIP untuk kualitas HD</span>
+                        </div>
+                      )}
                       {qualityOptions.map((q) => {
                         const isLocked = q.isHD && !isVip;
                         return (

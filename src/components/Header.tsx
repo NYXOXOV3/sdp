@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
-import { Search, X, Clock } from "lucide-react";
+import { Search, X, Clock, Crown } from "lucide-react";
 import { useSearchDramas } from "@/hooks/useDramas";
 import { useReelShortSearch } from "@/hooks/useReelShort";
 import { useNetShortSearch } from "@/hooks/useNetShort";
@@ -112,6 +112,10 @@ export function Header() {
             </Link>
             <Link href="/favorites" className={`nav-item ${pathname === '/favorites' ? 'active' : ''}`}>
               Library
+            </Link>
+            <Link href="/upgrade" className={`nav-item ${pathname === '/upgrade' ? 'active' : ''} flex items-center gap-1.5`}>
+              <Crown className="w-4 h-4 text-amber-400" />
+              VIP
             </Link>
           </div>
 
