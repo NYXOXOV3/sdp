@@ -61,22 +61,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('[AuthContext] Error fetching user role:', error);
-        console.error('[AuthContext] Error details:', JSON.stringify(error, null, 2));
-        
-        // If error is related to RLS or not found, try to insert the user
-        if (error.code === 'PGRST116' || error.message.includes('no rows')) {
+
+        if (error.message?.includes('does not exist') || error.message?.includes('querying schema') || error.code === '42P01') {
+          console.warn('[AuthContext] Users table may not exist yet. Defaulting to user role.');
+          setUserRole('user');
+          setLoading(false);
+          return;
+        }
+
+        if (error.code === 'PGRST116' || error.message?.includes('no rows')) {
           console.log('[AuthContext] User not found in users table, creating...');
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert([{ id: userId, role: 'user' }]);
-          
-          if (insertError) {
-            console.error('[AuthContext] Error creating user:', insertError);
-          } else {
-            console.log('[AuthContext] User created successfully');
+          try {
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert([{ id: userId, role: 'user' }]);
+
+            if (insertError) {
+              console.warn('[AuthContext] Could not create user record:', insertError.message);
+            } else {
+              console.log('[AuthContext] User created successfully');
+            }
+          } catch (insertErr) {
+            console.warn('[AuthContext] Insert failed, table may not exist:', insertErr);
           }
         }
-        
+
         setUserRole('user');
       } else {
         console.log('[AuthContext] Role fetched successfully:', data?.role);
@@ -95,7 +104,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Database error') || error.message.includes('querying schema')) {
+        throw new Error('Login gagal karena masalah konfigurasi database. Pastikan tabel database sudah dibuat di Supabase.');
+      }
+      if (error.message.includes('Invalid login credentials')) {
+        throw new Error('Email atau password salah. Silakan coba lagi.');
+      }
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
@@ -110,9 +127,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Signup error:', error);
-        // Handle specific Supabase errors
-        if (error.message.includes('Database error saving new user')) {
-          throw new Error('Registration temporarily unavailable. Please try again later.');
+        if (error.message.includes('Database error') || error.message.includes('querying schema')) {
+          throw new Error('Registrasi gagal karena masalah konfigurasi database. Pastikan tabel database sudah dibuat di Supabase.');
+        }
+        if (error.message.includes('already registered')) {
+          throw new Error('Email ini sudah terdaftar. Silakan login.');
         }
         throw new Error(error.message || 'Failed to sign up');
       }

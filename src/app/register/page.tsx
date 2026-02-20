@@ -48,14 +48,16 @@ export default function RegisterPage() {
       let errorMessage = 'Failed to sign up';
       
       if (err.message) {
-        if (err.message.includes('already registered')) {
-          errorMessage = 'This email is already registered. Please sign in instead.';
+        if (err.message.includes('Database error') || err.message.includes('querying schema')) {
+          errorMessage = 'Registrasi gagal karena masalah konfigurasi database. Pastikan tabel database sudah dibuat di Supabase.';
+        } else if (err.message.includes('already registered') || err.message.includes('sudah terdaftar')) {
+          errorMessage = 'Email ini sudah terdaftar. Silakan login.';
         } else if (err.message.includes('invalid email')) {
-          errorMessage = 'Please enter a valid email address.';
+          errorMessage = 'Masukkan alamat email yang valid.';
         } else if (err.message.includes('weak password')) {
-          errorMessage = 'Password is too weak. Please use a stronger password.';
+          errorMessage = 'Password terlalu lemah. Gunakan password yang lebih kuat.';
         } else if (err.message.includes('network')) {
-          errorMessage = 'Network error. Please check your connection and try again.';
+          errorMessage = 'Koneksi bermasalah. Periksa koneksi internet Anda.';
         } else {
           errorMessage = err.message;
         }
