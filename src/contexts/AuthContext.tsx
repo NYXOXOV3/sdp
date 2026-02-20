@@ -53,11 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUserRole = async (userId: string) => {
     console.log('[AuthContext] Fetching role for user:', userId);
     try {
-      const res = await fetch(`/api/user/role?userId=${userId}`);
-      const data = await res.json();
-      const role = data?.role || 'user';
-      console.log('[AuthContext] Role fetched successfully:', role);
-      setUserRole(role);
+      const { data, error } = await supabase.rpc('get_my_role');
+      if (error) {
+        console.error('[AuthContext] RPC error:', error);
+        setUserRole('user');
+      } else {
+        const role = data || 'user';
+        console.log('[AuthContext] Role fetched successfully:', role);
+        setUserRole(role);
+      }
     } catch (error) {
       console.error('[AuthContext] Exception fetching user role:', error);
       setUserRole('user');
