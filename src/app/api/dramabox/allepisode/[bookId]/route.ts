@@ -1,4 +1,4 @@
-/**import { safeJson, encryptedResponse } from "@/lib/api-utils";
+import { safeJson, encryptedResponse } from "@/lib/api-utils";
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 
@@ -28,64 +28,6 @@ export async function GET(
 
     const data = await safeJson(response);
     return encryptedResponse(data);
-  } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}**/
-
-import { safeJson, encryptedResponse } from "@/lib/api-utils";
-import { NextRequest, NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
-
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://api.sonzaix.indevs.in";
-
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { bookId: string } }
-) {
-  try {
-    const { bookId } = params;
-    const searchParams = request.nextUrl.searchParams;
-    const episodeIndex = searchParams.get("episode") || "0";
-
-    if (!bookId) {
-      return NextResponse.json(
-        { error: "Missing bookId" },
-        { status: 400 }
-      );
-    }
-
-    const response = await fetch(
-      `${BASE_URL}/dramabox/stream?dramaId=${bookId}&episodeIndex=${episodeIndex}`,
-      {
-        cache: "no-store",
-      }
-    );
-
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: "Failed to fetch data" },
-        { status: response.status }
-      );
-    }
-
-    const apiResponse = await safeJson(response);
-
-    // Ambil hanya bagian data supaya frontend tidak tergantung wrapper
-    const streamData = apiResponse?.data ?? null;
-
-    if (!streamData || !streamData.videoUrl) {
-      return encryptedResponse(null);
-    }
-
-    return encryptedResponse(streamData);
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
